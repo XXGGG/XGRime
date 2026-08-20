@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- 圆角背景 -->
+  <rect width="512" height="512" rx="112" fill="#222222"/>
+  <!-- 毛笔图标居中缩放 (原始 24x24 → 缩放到 280x280，居中偏移 116) -->
+  <g transform="translate(116, 116) scale(11.667)" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="m11 10l3 3m-7.5 8A3.5 3.5 0 1 0 3 17.5a2.62 2.62 0 0 1-.708 1.792A1 1 0 0 0 3 21z"/>
+    <path d="M9.969 17.031L21.378 5.624a1 1 0 0 0-3.002-3.002L6.967 14.031"/>
+  </g>
+</svg>

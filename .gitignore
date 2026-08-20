@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+src-tauri/target/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+
+# Tauri 自动生成的能力 schema（每次构建重新生成，不该进仓库）
+src-tauri/gen/schemas/
+
+# 指向 src-tauri/target/release/bundle 的快捷方式，由 pnpm link:bundle 生成
+/安装包
+
+# Python 脚本跑出来的缓存
+__pycache__/
