@@ -74,9 +74,23 @@ fn icons_dir(config_dir: &Path) -> PathBuf {
     config_dir.join("icons")
 }
 
+/// 图标装到所有启用中的方案上
+///
+/// 小狼毫是按方案存图标的，但用户要的是「换了图标，打什么方案都是这个图标」。
+/// 只装当前方案的话，一切到别的方案图标就变回自带的那个 —— 看着像坏了。
+fn target_schemas(config_dir: &str) -> Vec<String> {
+    let list = crate::dict::enabled_schemas(config_dir);
+    if list.is_empty() {
+        vec![crate::settings::detect_primary_schema(Path::new(config_dir))]
+    } else {
+        list
+    }
+}
+
 #[tauri::command]
-pub fn read_schema_icons(config_dir: String, schema: String) -> AppResult<Vec<SchemaIcon>> {
+pub fn read_schema_icons(config_dir: String) -> AppResult<Vec<SchemaIcon>> {
     let dir = Path::new(&config_dir);
+    let schema = crate::settings::current_schema(dir);
     let custom = dir.join(format!("{}.custom.yaml", schema));
     let patch = std::fs::read_to_string(&custom)
         .ok()
@@ -105,7 +119,6 @@ pub fn read_schema_icons(config_dir: String, schema: String) -> AppResult<Vec<Sc
 #[tauri::command]
 pub fn set_schema_icon(
     config_dir: String,
-    schema: String,
     kind: String,
     source: String,
 ) -> AppResult<Vec<SchemaIcon>> {
@@ -127,51 +140,53 @@ pub fn set_schema_icon(
     let target_dir = icons_dir(dir);
     std::fs::create_dir_all(&target_dir).map_err(|e| AppError::with(code::DIR_CREATE_FAILED, e))?;
 
-    // 文件名带上方案和用途，多个方案各用各的互不覆盖
-    let name = format!("xgrime-{}-{}.{}", schema, kind.slug(), ext);
+    // 所有方案共用同一份文件，名字不带方案
+    let name = format!("xgrime-{}.{}", kind.slug(), ext);
     std::fs::copy(&src, target_dir.join(&name))
         .map_err(|e| AppError::with(code::FILE_WRITE_FAILED, e))?;
 
     // 小狼毫是按「相对配置目录」来找的，所以这里写相对路径
     let relative = format!("icons/{}", name);
-    crate::settings::merge_patch(
-        &dir.join(format!("{}.custom.yaml", schema)),
-        [(
-            kind.patch_key().to_string(),
-            serde_yaml::Value::String(relative),
-        )],
-        &[],
-    )?;
+    for schema in target_schemas(&config_dir) {
+        crate::settings::merge_patch(
+            &dir.join(format!("{}.custom.yaml", schema)),
+            [(
+                kind.patch_key().to_string(),
+                serde_yaml::Value::String(relative.clone()),
+            )],
+            &[],
+        )?;
+    }
 
-    read_schema_icons(config_dir, schema)
+    read_schema_icons(config_dir)
 }
 
 #[tauri::command]
-pub fn clear_schema_icon(
-    config_dir: String,
-    schema: String,
-    kind: String,
-) -> AppResult<Vec<SchemaIcon>> {
+pub fn clear_schema_icon(config_dir: String, kind: String) -> AppResult<Vec<SchemaIcon>> {
     let kind = IconKind::parse(&kind)?;
     let dir = Path::new(&config_dir);
 
-    crate::settings::merge_patch(
-        &dir.join(format!("{}.custom.yaml", schema)),
-        [],
-        &[kind.patch_key()],
-    )?;
+    for schema in target_schemas(&config_dir) {
+        crate::settings::merge_patch(
+            &dir.join(format!("{}.custom.yaml", schema)),
+            [],
+            &[kind.patch_key()],
+        )?;
+    }
 
-    // 拷进来的那份也删掉，别在目录里留垃圾
+    // 拷进来的那份也删掉，别在目录里留垃圾。
+    // 两种名字都扫：`xgrime-<用途>` 是现在的，`xgrime-<方案>-<用途>` 是早期按方案存的。
     if let Ok(entries) = std::fs::read_dir(icons_dir(dir)) {
-        let head = format!("xgrime-{}-{}.", schema, kind.slug());
+        let slug = kind.slug();
         for e in entries.filter_map(|e| e.ok()) {
-            if e.file_name().to_string_lossy().starts_with(&head) {
+            let name = e.file_name().to_string_lossy().to_string();
+            if name.starts_with("xgrime-") && name.contains(slug) {
                 let _ = std::fs::remove_file(e.path());
             }
         }
     }
 
-    read_schema_icons(config_dir, schema)
+    read_schema_icons(config_dir)
 }
 
 /// 内置的一套状态图标
@@ -226,12 +241,27 @@ pub fn list_builtin_icon_sets(app: tauri::AppHandle) -> AppResult<Vec<IconSet>> 
         .collect())
 }
 
+/// 清掉不再被引用的图标文件
+///
+/// 早期是按方案存的（`xgrime-<方案>-<用途>.ico`），现在所有方案共用
+/// `xgrime-<用途>.ico`。装新的时候把旧命名那批扫掉，别在目录里烂着。
+fn prune_stale_icons(config_dir: &Path, keep: &[String]) {
+    let Ok(entries) = std::fs::read_dir(icons_dir(config_dir)) else {
+        return;
+    };
+    for e in entries.filter_map(|e| e.ok()) {
+        let name = e.file_name().to_string_lossy().to_string();
+        if name.starts_with("xgrime-") && !keep.iter().any(|k| k == &name) {
+            let _ = std::fs::remove_file(e.path());
+        }
+    }
+}
+
 /// 一次把整套内置图标装上
 #[tauri::command]
 pub fn apply_builtin_icon_set(
     app: tauri::AppHandle,
     config_dir: String,
-    schema: String,
     set: String,
 ) -> AppResult<Vec<SchemaIcon>> {
     if set != AUTO && !BUILTIN_SETS.contains(&set.as_str()) {
@@ -244,14 +274,16 @@ pub fn apply_builtin_icon_set(
     std::fs::create_dir_all(&target_dir).map_err(|e| AppError::with(code::DIR_CREATE_FAILED, e))?;
 
     let mut patch = Vec::new();
+    let mut keep = Vec::new();
     for kind in ALL {
         let src = src_dir.join(format!("{}.ico", kind.slug()));
         if !src.is_file() {
             return Err(AppError::with(code::ICON_SET_UNKNOWN, src.display().to_string()));
         }
-        let name = format!("xgrime-{}-{}.ico", schema, kind.slug());
+        let name = format!("xgrime-{}.ico", kind.slug());
         std::fs::copy(&src, target_dir.join(&name))
             .map_err(|e| AppError::with(code::FILE_WRITE_FAILED, e))?;
+        keep.push(name.clone());
         // 小狼毫是按「相对配置目录」找的，所以写相对路径
         patch.push((
             kind.patch_key().to_string(),
@@ -259,24 +291,27 @@ pub fn apply_builtin_icon_set(
         ));
     }
 
-    crate::settings::merge_patch(&dir.join(format!("{}.custom.yaml", schema)), patch, &[])?;
+    for schema in target_schemas(&config_dir) {
+        crate::settings::merge_patch(
+            &dir.join(format!("{}.custom.yaml", schema)),
+            patch.clone(),
+            &[],
+        )?;
+    }
+    prune_stale_icons(dir, &keep);
     // 记下选的是哪一套（可能是 auto）和实际装的是哪一套 —— 下次开机比对用
     crate::prefs::write_icon_pref(&crate::prefs::IconPref {
         mode: set,
         applied: actual,
     })?;
-    read_schema_icons(config_dir, schema)
+    read_schema_icons(config_dir)
 }
 
 /// 开机 / 打开这一页时对一次：选了「自动」而任务栏深浅变了，就悄悄换过来
 ///
 /// 返回 true 表示真换了，调用方据此决定要不要重新部署。
 #[tauri::command]
-pub fn sync_status_icons(
-    app: tauri::AppHandle,
-    config_dir: String,
-    schema: String,
-) -> AppResult<bool> {
+pub fn sync_status_icons(app: tauri::AppHandle, config_dir: String) -> AppResult<bool> {
     let pref = crate::prefs::read_icon_pref()?;
     if pref.mode != AUTO {
         return Ok(false);
@@ -285,7 +320,7 @@ pub fn sync_status_icons(
     if want == pref.applied {
         return Ok(false);
     }
-    apply_builtin_icon_set(app, config_dir, schema, AUTO.to_string())?;
+    apply_builtin_icon_set(app, config_dir, AUTO.to_string())?;
     Ok(true)
 }
 
@@ -302,8 +337,7 @@ pub fn sync_on_startup(app: tauri::AppHandle) {
         if !info.installed {
             return;
         }
-        let schema = crate::settings::current_schema(std::path::Path::new(&info.config_dir));
-        if let Ok(true) = sync_status_icons(app, info.config_dir, schema) {
+        if let Ok(true) = sync_status_icons(app, info.config_dir) {
             let _ = platform.deploy(info.install_dir.as_deref());
         }
     });
@@ -311,10 +345,10 @@ pub fn sync_on_startup(app: tauri::AppHandle) {
 
 /// 四个状态一起清掉
 #[tauri::command]
-pub fn clear_all_schema_icons(config_dir: String, schema: String) -> AppResult<Vec<SchemaIcon>> {
+pub fn clear_all_schema_icons(config_dir: String) -> AppResult<Vec<SchemaIcon>> {
     crate::prefs::write_icon_pref(&crate::prefs::IconPref::default())?;
     for kind in ALL {
-        clear_schema_icon(config_dir.clone(), schema.clone(), kind.slug().to_string())?;
+        clear_schema_icon(config_dir.clone(), kind.slug().to_string())?;
     }
-    read_schema_icons(config_dir, schema)
+    read_schema_icons(config_dir)
 }

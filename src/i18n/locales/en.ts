@@ -263,8 +263,8 @@ export default {
   },
   icons: {
     title: 'Status icons',
-    subtitle: 'The badge shown when you switch between Chinese and English, set per schema',
-    hint: 'Currently editing "{schema}". To set up another schema, switch to it under Input schemas first.',
+    subtitle: 'The badge shown when you switch between Chinese and English',
+    hint: 'Applied to every enabled schema, so switching schema keeps the same icons.',
     builtin: 'Built-in sets',
     autoHint: 'Light glyphs on a dark taskbar, dark glyphs on a light one. If the system theme changes, opening this page switches them over.',
     bootHint: 'Right after boot, before you have typed anything, the tray shows the IME built-in icon — it only reads the schema icon once an input session starts. Type once and it switches over.',

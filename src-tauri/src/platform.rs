@@ -256,10 +256,15 @@ impl RimePlatform for WindowsPlatform {
     }
 
     fn stop_service(&self, _install_dir: Option<&str>) -> AppResult<()> {
+        use std::os::windows::process::CommandExt;
         // 故意不用它自带的 `/q`：那条路径会把内存里的方案写回 user.yaml，
         // 正好盖掉我们马上要写进去的新方案。直接结束进程，让文件说了算。
+        //
+        // taskkill 是控制台程序，不加 CREATE_NO_WINDOW 的话每次切方案都会闪一个黑框。
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
         let _ = std::process::Command::new("taskkill")
             .args(["/IM", "WeaselServer.exe", "/F"])
+            .creation_flags(CREATE_NO_WINDOW)
             .status();
         std::thread::sleep(std::time::Duration::from_millis(400));
         Ok(())

@@ -143,22 +143,22 @@ export function deleteUserPreset(id: string) {
 }
 
 /** 读某个方案配了哪些状态图标 */
-export function readSchemaIcons(configDir: string, schema: string) {
-  return invoke<SchemaIcon[]>('read_schema_icons', { configDir, schema })
+export function readSchemaIcons(configDir: string) {
+  return invoke<SchemaIcon[]>('read_schema_icons', { configDir })
 }
 
 /** 把选中的图片设成某个状态的图标 */
-export function setSchemaIcon(configDir: string, schema: string, kind: string, source: string) {
-  return invoke<SchemaIcon[]>('set_schema_icon', { configDir, schema, kind, source })
+export function setSchemaIcon(configDir: string, kind: string, source: string) {
+  return invoke<SchemaIcon[]>('set_schema_icon', { configDir, kind, source })
 }
 
-export function clearSchemaIcon(configDir: string, schema: string, kind: string) {
-  return invoke<SchemaIcon[]>('clear_schema_icon', { configDir, schema, kind })
+export function clearSchemaIcon(configDir: string, kind: string) {
+  return invoke<SchemaIcon[]>('clear_schema_icon', { configDir, kind })
 }
 
 /** 四个状态一起清掉 */
-export function clearAllSchemaIcons(configDir: string, schema: string) {
-  return invoke<SchemaIcon[]>('clear_all_schema_icons', { configDir, schema })
+export function clearAllSchemaIcons(configDir: string) {
+  return invoke<SchemaIcon[]>('clear_all_schema_icons', { configDir })
 }
 
 /** 跟应用一起打包的那几套图标 */
@@ -167,8 +167,8 @@ export function listBuiltinIconSets() {
 }
 
 /** 一次把整套内置图标装上 */
-export function applyBuiltinIconSet(configDir: string, schema: string, set: string) {
-  return invoke<SchemaIcon[]>('apply_builtin_icon_set', { configDir, schema, set })
+export function applyBuiltinIconSet(configDir: string, set: string) {
+  return invoke<SchemaIcon[]>('apply_builtin_icon_set', { configDir, set })
 }
 
 /** 现在用的是哪个输入方案，以及选单里有哪些 */
@@ -207,8 +207,8 @@ export function readIconPref() {
 }
 
 /** 选了「自动」而任务栏深浅变了就换过来，返回 true 表示真换了 */
-export function syncStatusIcons(configDir: string, schema: string) {
-  return invoke<boolean>('sync_status_icons', { configDir, schema })
+export function syncStatusIcons(configDir: string) {
+  return invoke<boolean>('sync_status_icons', { configDir })
 }
 
 /** 开机自启 */

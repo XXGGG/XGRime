@@ -83,17 +83,16 @@ async function load() {
   } catch {
     mode.value = ''
   }
-  if (!schemaId.value) return
   // 选了「自动」的话，开机换了任务栏深浅这里对一次，换了就顺手重新部署
   try {
-    if (await syncStatusIcons(dir, schemaId.value)) {
+    if (await syncStatusIcons(dir)) {
       job.redeploy().catch(() => {})
     }
   } catch {
     /* 同步失败不该挡住整页 */
   }
   try {
-    icons.value = await readSchemaIcons(dir, schemaId.value)
+    icons.value = await readSchemaIcons(dir)
   } catch {
     icons.value = []
   }
@@ -105,10 +104,10 @@ const anySet = () => icons.value.some((i) => i.path)
 
 async function useSet(id: string) {
   const dir = configDir()
-  if (!dir || !schemaId.value) return
+  if (!dir) return
   busy.value = id
   try {
-    icons.value = await applyBuiltinIconSet(dir, schemaId.value, id)
+    icons.value = await applyBuiltinIconSet(dir, id)
     mode.value = id
     toast.success(t('icons.applied'))
     job.redeploy().catch((e) => toast.error(t('icons.failed'), e))
@@ -121,7 +120,7 @@ async function useSet(id: string) {
 
 async function pick(kind: string) {
   const dir = configDir()
-  if (!dir || !schemaId.value) return
+  if (!dir) return
   const chosen = await open({
     multiple: false,
     filters: [{ name: 'Icon', extensions: ['ico', 'png'] }],
@@ -130,7 +129,7 @@ async function pick(kind: string) {
 
   busy.value = kind
   try {
-    icons.value = await setSchemaIcon(dir, schemaId.value, kind, chosen)
+    icons.value = await setSchemaIcon(dir, kind, chosen)
     toast.success(t('icons.changed'))
     job.redeploy().catch((e) => toast.error(t('icons.failed'), e))
   } catch (e) {
@@ -142,10 +141,10 @@ async function pick(kind: string) {
 
 async function reset(kind: string) {
   const dir = configDir()
-  if (!dir || !schemaId.value) return
+  if (!dir) return
   busy.value = kind
   try {
-    icons.value = await clearSchemaIcon(dir, schemaId.value, kind)
+    icons.value = await clearSchemaIcon(dir, kind)
     toast.success(t('icons.reset'))
     job.redeploy().catch((e) => toast.error(t('icons.failed'), e))
   } catch (e) {
@@ -157,7 +156,7 @@ async function reset(kind: string) {
 
 async function resetAll() {
   const dir = configDir()
-  if (!dir || !schemaId.value) return
+  if (!dir) return
   const ok = await confirmAction({
     title: t('icons.resetAllConfirm'),
     confirmText: t('icons.resetAll'),
@@ -166,7 +165,7 @@ async function resetAll() {
   if (!ok) return
   busy.value = 'all'
   try {
-    icons.value = await clearAllSchemaIcons(dir, schemaId.value)
+    icons.value = await clearAllSchemaIcons(dir)
     mode.value = ''
     toast.success(t('icons.reset'))
     job.redeploy().catch((e) => toast.error(t('icons.failed'), e))
@@ -203,7 +202,7 @@ watch(() => rimeStore.installInfo?.configDir, load, { immediate: true })
 
     <div class="flex-1 overflow-auto min-h-0 pb-8 space-y-8">
       <p class="text-[13px] text-muted-foreground/70 leading-relaxed">
-        {{ $t('icons.hint', { schema: schemaId || '—' }) }}
+        {{ $t('icons.hint') }}
       </p>
 
       <!-- 内置图标 -->
@@ -216,7 +215,7 @@ watch(() => rimeStore.installInfo?.configDir, load, { immediate: true })
             :class="mode === AUTO
               ? 'border-primary inset-ring-1 inset-ring-primary/40'
               : 'border-transparent hover:border-primary/30'"
-            :disabled="busy !== null || !schemaId"
+            :disabled="busy !== null"
             @click="useSet(AUTO)"
           >
             <div class="flex items-center gap-3">
@@ -240,7 +239,7 @@ watch(() => rimeStore.installInfo?.configDir, load, { immediate: true })
             :class="mode === set.id
               ? 'border-primary inset-ring-1 inset-ring-primary/40'
               : 'border-transparent hover:border-primary/30'"
-            :disabled="busy !== null || !schemaId"
+            :disabled="busy !== null"
             @click="useSet(set.id)"
           >
             <div class="rounded-lg px-3 py-2.5 flex items-center gap-3" :class="backdropOf(set.id)">
@@ -288,7 +287,7 @@ watch(() => rimeStore.installInfo?.configDir, load, { immediate: true })
           <div class="flex items-center gap-1.5 shrink-0">
             <button
               class="px-2.5 py-1 rounded-lg bg-muted/50 text-[12px] text-foreground/80 hover:text-foreground transition-colors disabled:opacity-40"
-              :disabled="busy !== null || !schemaId"
+              :disabled="busy !== null"
               @click="pick(kind)"
             >
               {{ $t('icons.choose') }}
