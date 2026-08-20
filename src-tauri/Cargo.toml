@@ -1,6 +1,6 @@
 [package]
 name = "xgrime"
-version = "0.4.1"
+version = "0.4.2"
 description = "RIME 输入法可视化配置助手"
 authors = ["xxg"]
 edition = "2021"

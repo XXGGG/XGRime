@@ -60,7 +60,7 @@ onMounted(() => {
       <p class="text-[15px] text-muted-foreground mt-0.5">{{ $t('prefs.subtitle') }}</p>
     </div>
 
-    <div class="flex-1 overflow-auto min-h-0 pb-8 max-w-2xl space-y-4">
+    <div class="flex-1 overflow-auto min-h-0 pb-8 space-y-4">
       <section class="rounded-xl bg-card p-4 space-y-4">
         <h2 class="text-[15px] font-semibold text-foreground/90">{{ $t('prefs.startup') }}</h2>
 

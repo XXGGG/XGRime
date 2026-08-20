@@ -95,7 +95,7 @@ async function doImport() {
       <p class="text-amber-500/80">{{ $t('theme.needRime') }}</p>
     </div>
 
-    <div class="max-w-2xl space-y-5">
+    <div class="space-y-5">
       <p class="text-[13px] text-muted-foreground/70 leading-relaxed">
         {{ $t('backup.hint') }}
       </p>

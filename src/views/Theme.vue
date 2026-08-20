@@ -252,7 +252,7 @@ watch(
     </div>
 
     <!-- 两个大分区：现成的一套套挑，或者自己一项项调 -->
-    <div class="flex items-center gap-1 p-1 rounded-xl bg-muted/40 mb-5 max-w-3xl">
+    <div class="flex items-center gap-1 p-1 rounded-xl bg-muted/40 mb-5">
       <button
         v-for="name in (['presets', 'custom'] as const)"
         :key="name"
@@ -264,7 +264,7 @@ watch(
       </button>
     </div>
 
-    <div class="flex-1 overflow-auto min-h-0 pb-8 max-w-3xl">
+    <div class="flex-1 overflow-auto min-h-0 pb-8">
       <PresetGallery
           v-show="tab === 'presets'"
           :theme="theme"

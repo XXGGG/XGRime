@@ -161,7 +161,7 @@ async function openRelease() {
 </script>
 
 <template>
-  <div class="max-w-xl space-y-8">
+  <div class="space-y-8">
     <div>
       <h1 class="text-xl font-semibold tracking-tight">XGRime</h1>
       <p class="text-[15px] text-muted-foreground mt-1">{{ $t('home.tagline') }}</p>
@@ -209,7 +209,7 @@ async function openRelease() {
           </button>
         </div>
 
-        <div class="flex flex-wrap gap-2.5">
+        <div class="flex flex-wrap items-center gap-2.5">
           <button
             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-[15px] hover:bg-primary/90 transition-colors disabled:opacity-50"
             :disabled="job.deploying"
@@ -243,12 +243,14 @@ async function openRelease() {
             <span class="icon-[lucide--refresh-cw] size-4 opacity-60" />
             {{ $t('common.recheck') }}
           </button>
+        </div>
+
+        <div v-if="info.canUninstall" class="pt-1">
           <button
-            v-if="info.canUninstall"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[15px] text-muted-foreground hover:text-red-500 transition-colors ml-auto"
+            class="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground/70 hover:text-red-500 transition-colors"
             @click="handleUninstall"
           >
-            <span class="icon-[lucide--trash-2] size-4" />
+            <span class="icon-[lucide--trash-2] size-3.5" />
             {{ $t('home.uninstallButton', { ime }) }}
           </button>
         </div>

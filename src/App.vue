@@ -78,7 +78,11 @@ onMounted(() => {
 
       <!-- 主内容区 -->
       <main class="flex-1 overflow-auto">
-        <div class="p-8 h-full">
+        <!--
+          内容统一收在一根居中的列里：窗口拉多大都不会散到左边去。
+          宽度归这里管，各个页面就别再自己写 max-w 了，写了反而会在这根列里再偏一次。
+        -->
+        <div class="p-8 h-full mx-auto w-full max-w-3xl">
           <HomeView v-if="currentView === 'Home'" />
           <DictionaryView v-else-if="currentView === 'Dictionary'" />
           <SettingsView v-else-if="currentView === 'Settings'" />

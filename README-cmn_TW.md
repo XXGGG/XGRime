@@ -18,7 +18,7 @@
   <img src="https://img.shields.io/badge/Rust-2021-DEA584?style=flat-square&logo=rust" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript" />
   <img src="https://img.shields.io/badge/%E5%B9%B3%E8%87%BA-Windows%20%7C%20macOS-lightgrey?style=flat-square" />
-  <img src="https://img.shields.io/badge/version-v0.4.1-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/version-v0.4.2-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/%E6%8E%88%E6%AC%8A-MIT-blue?style=flat-square" />
 </p>
 

@@ -202,14 +202,14 @@ watch(() => rimeStore.installInfo?.configDir, load, { immediate: true })
     </div>
 
     <div class="flex-1 overflow-auto min-h-0 pb-8 space-y-8">
-      <p class="text-[13px] text-muted-foreground/70 leading-relaxed max-w-2xl">
+      <p class="text-[13px] text-muted-foreground/70 leading-relaxed">
         {{ $t('icons.hint', { schema: schemaId || '—' }) }}
       </p>
 
       <!-- 内置图标 -->
       <div class="space-y-3">
         <h3 class="text-[15px] font-semibold text-foreground/90">{{ $t('icons.builtin') }}</h3>
-        <div class="grid grid-cols-1 min-[820px]:grid-cols-2 gap-3 max-w-3xl">
+        <div class="grid grid-cols-1 min-[820px]:grid-cols-2 gap-3">
           <!-- 自动：不是某一套图标，是个选择，所以单独一张卡 -->
           <button
             class="rounded-xl bg-card p-4 border transition-all text-left disabled:opacity-40 min-[820px]:col-span-2"
@@ -262,13 +262,13 @@ watch(() => rimeStore.installInfo?.configDir, load, { immediate: true })
           </button>
         </div>
 
-        <p class="text-[11px] text-muted-foreground/50 leading-relaxed max-w-3xl">
+        <p class="text-[11px] text-muted-foreground/50 leading-relaxed">
           {{ $t('icons.bootHint') }}
         </p>
       </div>
 
       <!-- 一个个换 -->
-      <div class="space-y-3 max-w-3xl">
+      <div class="space-y-3">
         <h3 class="text-[15px] font-semibold text-foreground/90">{{ $t('icons.custom') }}</h3>
         <div v-for="kind in KINDS" :key="kind" class="flex items-center justify-between gap-3 py-1">
           <div class="min-w-0">

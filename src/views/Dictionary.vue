@@ -165,7 +165,7 @@ watch(configDir, (dir) => {
 </script>
 
 <template>
-  <div class="max-w-2xl space-y-6">
+  <div class="space-y-6">
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-xl font-semibold tracking-tight">{{ $t('schemas.title') }}</h1>
